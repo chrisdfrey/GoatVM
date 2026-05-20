@@ -43,6 +43,7 @@
 #include "sci/engine/selector.h"	// for SELECTOR
 #include "sci/engine/scriptdebug.h"
 #include "sci/engine/tts.h"
+#include "sci/engine/dub.h"
 
 #include "sci/sound/audio.h"
 #include "sci/sound/music.h"
@@ -135,6 +136,7 @@ SciEngine::SciEngine(OSystem *syst, const ADGameDescription *desc, SciGameId gam
 	_gameObjectAddress(),
 	_console(nullptr),
 	_tts(nullptr),
+	_dub(nullptr),
 	_rng("sci"),
 	_useHiresGraphics(false),
 	_inErrorString(false) {
@@ -267,6 +269,7 @@ SciEngine::~SciEngine() {
 
 	delete _scriptPatcher;
 	delete _tts;
+	delete _dub;
 	delete _resMan;	// should be deleted last
 	g_sci = nullptr;
 }
@@ -275,6 +278,7 @@ extern int showScummVMDialog(const Common::U32String &message, const Common::U32
 
 Common::Error SciEngine::run() {
 	_tts = new SciTTS();
+	_dub = new SciDubManager();
 
 	_resMan = new ResourceManager();
 	_resMan->addAppropriateSources();

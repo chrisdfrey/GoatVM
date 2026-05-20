@@ -28,6 +28,7 @@
 #include "sci/engine/state.h"
 #include "sci/engine/selector.h"
 #include "sci/engine/tts.h"
+#include "sci/engine/dub.h"
 
 namespace Sci {
 
@@ -445,9 +446,13 @@ reg_t kStrLen(EngineState *s, int argc, reg_t *argv) {
 
 
 reg_t kGetFarText(EngineState *s, int argc, reg_t *argv) {
-	const Common::String text = g_sci->getKernel()->lookupText(make_reg(0, argv[0].toUint16()), argv[1].toUint16());
+	uint16 offset = argv[0].toUint16();
+	uint16 index = argv[1].toUint16();
+
+	const Common::String text = g_sci->getKernel()->lookupText(make_reg(0, offset), index);
 
 	g_sci->_tts->setMessage(text);
+	g_sci->_dub->setLastText(offset, index);
 
 	// If the third argument is NULL, allocate memory for the destination. This
 	// occurs in SCI1 Mac games. The memory will later be freed by the game's

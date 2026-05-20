@@ -31,6 +31,7 @@
 #include "sci/engine/state.h"
 #include "sci/engine/selector.h"
 #include "sci/engine/tts.h"
+#include "sci/engine/dub.h"
 #include "sci/graphics/compare.h"
 #include "sci/graphics/drivers/gfxdriver.h"
 #include "sci/graphics/ports.h"
@@ -391,6 +392,11 @@ void GfxControls16::kernelDrawButton(Common::Rect rect, reg_t obj, const char *t
 
 void GfxControls16::kernelDrawText(Common::Rect rect, reg_t obj, const char *text, uint16 languageSplitter, int16 fontId, TextAlignment alignment, int16 style, bool hilite) {
 	g_sci->_tts->text(text);
+
+	// input text boxes in SCI0 games pass in empty strings for text
+	if (text[0]) {
+		g_sci->_dub->start();
+	}
 
 	if (!hilite) {
 		rect.grow(1);

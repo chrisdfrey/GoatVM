@@ -37,6 +37,7 @@
 #include "sci/engine/state.h"
 #include "sci/engine/selector.h"
 #include "sci/engine/tts.h"
+#include "sci/engine/dub.h"
 #include "sci/engine/kernel.h"
 #include "sci/graphics/animate.h"
 #include "sci/graphics/cache.h"
@@ -1205,6 +1206,7 @@ reg_t kDisposeWindow(EngineState *s, int argc, reg_t *argv) {
 
 	g_sci->_gfxPorts->kernelDisposeWindow(windowId, reanimate);
 	g_sci->_tts->stop();
+	g_sci->_dub->stop();
 
 	// This is only needed for KQ6WinCD when using the mixed speech+text mode with hires graphics enabled.
 	// The original interpreter does not support the mixed mode, but it still does have this code here. So

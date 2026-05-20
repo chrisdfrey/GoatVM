@@ -80,6 +80,7 @@ class GfxText16;
 class GfxText32;
 class GfxTransitions;
 class SciTTS;
+class SciDubManager;
 
 #ifdef ENABLE_SCI32
 class GfxFrameout;
@@ -314,6 +315,7 @@ public:
 	GfxMacIconBar *_gfxMacIconBar; // Mac Icon Bar manager
 	GfxMacFontManager *_gfxMacFontManager; // null when not applicable
 	SciTTS *_tts;
+	SciDubManager *_dub;
 
 #ifdef ENABLE_SCI32
 	GfxControls32 *_gfxControls32; // Controls for 32-bit gfx
