@@ -29,7 +29,7 @@ namespace Sci {
 class SciDubManager {
 public:
 	SciDubManager();
-	void loadDubFiles();
+
 	void setLastText(uint16 offset, uint16 index);
 	void start();
 	void stop();
