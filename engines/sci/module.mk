@@ -4,6 +4,7 @@ MODULE_OBJS := \
 	console.o \
 	detection_internal.o \
 	dialogs.o \
+	dub.o \
 	event.o \
 	metaengine.o \
 	sci.o \
