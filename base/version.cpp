@@ -82,9 +82,9 @@ const char gScummVMCompiler[] = ""
 	;
 
 #ifdef RELEASE_BUILD
-	const char gScummVMFullVersion[] = "ScummVM " SCUMMVM_VERSION;
+	const char gScummVMFullVersion[] = "GoatVM " SCUMMVM_VERSION;
 #else
-	const char gScummVMFullVersion[] = "ScummVM " SCUMMVM_VERSION SCUMMVM_REVISION " (" __DATE__ " " __TIME__ ")";
+	const char gScummVMFullVersion[] = "GoatVM " SCUMMVM_VERSION SCUMMVM_REVISION " (" __DATE__ " " __TIME__ ")";
 #endif
 
 const char gScummVMFeatures[] = ""
