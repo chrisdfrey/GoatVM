@@ -19,7 +19,9 @@
  *
  */
 
+#include "common/array.h"
 #include "common/file.h"
+#include "common/tokenizer.h"
 
 #include "audio/audiostream.h"
 #include "audio/mixer.h"
@@ -29,22 +31,69 @@
 
 namespace Sci {
 
-SciDubManager::SciDubManager() : _lastTextOffset(0), _lastTextIndex(0) {}
+uint32 makeOffsetKey(uint16 offset, uint16 index) {
+	return ((uint32)offset << 16) + index;
+}
 
-void SciDubManager::setLastText(uint16 offset, uint16 index) {
-	_lastTextOffset = offset;
-	_lastTextIndex = index;
+SciDubManager::SciDubManager() {}
+
+void SciDubManager::setMessage(const Common::String &text, uint16 offset, uint16 index) {
+	if (text.size() == 0) {
+		return;
+	}
+
+	if (offset != 0) {
+		uint32 key = makeOffsetKey(offset, index);
+		if (_offsetMap.contains(key)) {
+			_dubFileQueue.push(_offsetMap[key]);
+		}
+	} else {
+		uint16 key = text.hash();
+		if (_hashMap.contains(key)) {
+			_dubFileQueue.push(_hashMap[key]);
+		}
+	}
+}
+
+void SciDubManager::loadConfig() {
+	Common::File configFile;
+	if (!configFile.open(Common::Path("dub/files.csv")))
+		return;
+
+	while (!configFile.eos() && !configFile.err()) {
+		Common::Array<Common::String> columns = Common::StringTokenizer(configFile.readLine(), ",").split();
+		if (columns.size() < 5)
+			continue;
+
+		Common::String type = columns[0];
+		Common::String path = columns[4];
+
+		if (type == "offset") {
+			uint16 offset = columns[1].asUint64();
+			uint16 index = columns[2].asUint64();
+		
+			uint32 key = makeOffsetKey(offset, index);
+			_offsetMap[key] = path;
+		} else if (type == "hash") {
+			uint16 key = (uint16)columns[3].asUint64();
+
+			_hashMap[key] = path;
+		}
+	}
 }
 
 void SciDubManager::start() {
-	Common::Path path = Common::Path(Common::String::format("dub/%d/%d.ogg", _lastTextOffset, _lastTextIndex));
+	if (_dubFileQueue.empty())
+		return;
+
+	Common::Path path(_dubFileQueue.pop());
 
 	Common::File *dubFile = new Common::File();
-	if (dubFile->exists(path)) {
-		dubFile->open(path);
-
+	if (dubFile->exists(path) && dubFile->open(path)) {
 		Audio::RewindableAudioStream *audioStream = Audio::makeVorbisStream(dubFile, DisposeAfterUse::YES);
 		g_system->getMixer()->playStream(Audio::Mixer::kSpeechSoundType, &_audioHandle, audioStream);
+	} else {
+		delete dubFile;
 	}
 }
 

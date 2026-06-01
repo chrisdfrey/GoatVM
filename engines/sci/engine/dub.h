@@ -22,6 +22,10 @@
 #ifndef SCI_ENGINE_DUB_H
 #define SCI_ENGINE_DUB_H
 
+#include "common/hashmap.h"
+#include "common/queue.h"
+#include "common/str.h"
+
 #include "audio/mixer.h"
 
 namespace Sci {
@@ -30,14 +34,19 @@ class SciDubManager {
 public:
 	SciDubManager();
 
-	void setLastText(uint16 offset, uint16 index);
+	void setMessage(const Common::String &text, uint16 offset=0, uint16 index=0);
+
+	void loadConfig();
 	void start();
 	void stop();
 
 private:
+	Common::HashMap<uint32, Common::String> _offsetMap;
+	Common::HashMap<uint16, Common::String> _hashMap;
+
+	Common::Queue<Common::String> _dubFileQueue;
+
 	Audio::SoundHandle _audioHandle;
-	uint16 _lastTextOffset;
-	uint16 _lastTextIndex;
 };
 
 } // End of namespace Sci

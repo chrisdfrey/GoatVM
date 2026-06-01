@@ -462,6 +462,8 @@ Common::Error SciEngine::run() {
 		warning("Fan made script patch detected");
 	}
 
+	_dub->loadConfig();
+
 	runGame();
 
 	ConfMan.flushToDisk();
