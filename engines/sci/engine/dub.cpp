@@ -35,9 +35,44 @@ uint32 makeOffsetKey(uint16 offset, uint16 index) {
 	return ((uint32)offset << 16) + index;
 }
 
-SciDubManager::SciDubManager() {}
+SciDubManager::SciDubManager() : _curDubFile(nullptr) {}
 
-void SciDubManager::setMessage(const Common::String &text, uint16 offset, uint16 index) {
+void SciDubManager::loadConfig() {
+	Common::File configFile;
+	if (!configFile.open(Common::Path("dub/files.csv")))
+		return;
+
+	configFile.readLine(); // consume header line
+
+	uint curFilesArrayIndex = 0;
+	while (!configFile.eos() && !configFile.err()) {
+		Common::String curLine = configFile.readLine();
+		Common::Array<Common::String> columns = Common::StringTokenizer(curLine, ",").split();
+		if (columns.size() < 5)
+			continue;
+
+		DubFileInfo info;
+		info.type = columns[0];
+		info.offset = (uint16)columns[1].asUint64();
+		info.index = (uint16)columns[2].asUint64();
+		info.hash = (uint16)columns[3].asUint64();
+		info.stopOnClose = columns[4] != "0";
+		info.path = columns[5];
+
+		_dubFiles.push_back(info);
+
+		if (info.type == "offset") {
+			uint32 key = makeOffsetKey(info.offset, info.index);
+			_offsetMap[key] = curFilesArrayIndex;
+		} else if (info.type == "hash") {
+			_hashMap[info.hash] = curFilesArrayIndex;
+		}
+
+		curFilesArrayIndex += 1;
+	}
+}
+
+void SciDubManager::onTextLoad(const Common::String &text, uint16 offset, uint16 index) {
 	if (text.size() == 0) {
 		return;
 	}
@@ -45,51 +80,27 @@ void SciDubManager::setMessage(const Common::String &text, uint16 offset, uint16
 	if (offset != 0) {
 		uint32 key = makeOffsetKey(offset, index);
 		if (_offsetMap.contains(key)) {
-			_dubFileQueue.push(_offsetMap[key]);
+			_playQueue.push(_offsetMap[key]);
 		}
 	} else {
 		uint16 key = text.hash();
 		if (_hashMap.contains(key)) {
-			_dubFileQueue.push(_hashMap[key]);
+			_playQueue.push(_hashMap[key]);
 		}
 	}
 }
 
-void SciDubManager::loadConfig() {
-	Common::File configFile;
-	if (!configFile.open(Common::Path("dub/files.csv")))
+void SciDubManager::onTextOpen() {
+	if (_playQueue.empty())
 		return;
 
-	while (!configFile.eos() && !configFile.err()) {
-		Common::Array<Common::String> columns = Common::StringTokenizer(configFile.readLine(), ",").split();
-		if (columns.size() < 5)
-			continue;
+	uint filesArrayIndex = _playQueue.pop();
+	_curDubFile = &(_dubFiles[filesArrayIndex]);
 
-		Common::String type = columns[0];
-		Common::String path = columns[4];
-
-		if (type == "offset") {
-			uint16 offset = columns[1].asUint64();
-			uint16 index = columns[2].asUint64();
-		
-			uint32 key = makeOffsetKey(offset, index);
-			_offsetMap[key] = path;
-		} else if (type == "hash") {
-			uint16 key = (uint16)columns[3].asUint64();
-
-			_hashMap[key] = path;
-		}
-	}
-}
-
-void SciDubManager::start() {
-	if (_dubFileQueue.empty())
-		return;
-
-	Common::Path path(_dubFileQueue.pop());
+	Common::Path path = Common::Path(_curDubFile->path);
 
 	Common::File *dubFile = new Common::File();
-	if (dubFile->exists(path) && dubFile->open(path)) {
+	if (dubFile->open(path)) {
 		Audio::RewindableAudioStream *audioStream = Audio::makeVorbisStream(dubFile, DisposeAfterUse::YES);
 		g_system->getMixer()->playStream(Audio::Mixer::kSpeechSoundType, &_audioHandle, audioStream);
 	} else {
@@ -97,8 +108,10 @@ void SciDubManager::start() {
 	}
 }
 
-void SciDubManager::stop() {
-	g_system->getMixer()->stopHandle(_audioHandle);
+void SciDubManager::onTextClose() {
+	if (_curDubFile && _curDubFile->stopOnClose) {
+		g_system->getMixer()->stopHandle(_audioHandle);
+	}
 }
 
 } // End of namespace Sci

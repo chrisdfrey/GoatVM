@@ -392,7 +392,7 @@ void GfxControls16::kernelDrawButton(Common::Rect rect, reg_t obj, const char *t
 
 void GfxControls16::kernelDrawText(Common::Rect rect, reg_t obj, const char *text, uint16 languageSplitter, int16 fontId, TextAlignment alignment, int16 style, bool hilite) {
 	g_sci->_tts->text(text);
-	g_sci->_dub->start();
+	g_sci->_dub->onTextOpen();
 
 	if (!hilite) {
 		rect.grow(1);

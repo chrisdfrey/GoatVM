@@ -108,7 +108,7 @@ reg_t kStrAt(EngineState *s, int argc, reg_t *argv) {
 
 	Common::String message = s->_segMan->getString(argv[0]);
 	g_sci->_tts->setMessage(message);
-	g_sci->_dub->setMessage(message);
+	g_sci->_dub->onTextLoad(message);
 
 	// in kq5 this here gets called with offset 0xFFFF
 	//  (in the desert wheng getting the staff)
@@ -454,7 +454,7 @@ reg_t kGetFarText(EngineState *s, int argc, reg_t *argv) {
 	const Common::String text = g_sci->getKernel()->lookupText(make_reg(0, offset), index);
 
 	g_sci->_tts->setMessage(text);
-	g_sci->_dub->setMessage(text, offset, index);
+	g_sci->_dub->onTextLoad(text, offset, index);
 
 	// If the third argument is NULL, allocate memory for the destination. This
 	// occurs in SCI1 Mac games. The memory will later be freed by the game's

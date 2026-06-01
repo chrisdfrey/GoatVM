@@ -34,17 +34,29 @@ class SciDubManager {
 public:
 	SciDubManager();
 
-	void setMessage(const Common::String &text, uint16 offset=0, uint16 index=0);
-
 	void loadConfig();
-	void start();
-	void stop();
+
+	void onTextLoad(const Common::String &text, uint16 offset=0, uint16 index=0);
+	void onTextOpen();
+	void onTextClose();
 
 private:
-	Common::HashMap<uint32, Common::String> _offsetMap;
-	Common::HashMap<uint16, Common::String> _hashMap;
+	struct DubFileInfo {
+		Common::String type;
+		uint16 offset;
+		uint16 index;
+		uint16 hash;
+		bool stopOnClose;
+		Common::String path;
+	};
 
-	Common::Queue<Common::String> _dubFileQueue;
+	Common::Array<DubFileInfo> _dubFiles;
+	DubFileInfo *_curDubFile;
+
+	Common::Queue<uint> _playQueue;
+	
+	Common::HashMap<uint32, uint> _offsetMap;
+	Common::HashMap<uint16, uint> _hashMap;
 
 	Audio::SoundHandle _audioHandle;
 };
